@@ -33,4 +33,3 @@ Attempting this password on the locked zip, we find another text file titled 'my
 ![image](https://github.com/user-attachments/assets/b97a915b-4a0b-4b76-843c-e926d2164ddb)
 
 ![image](https://github.com/user-attachments/assets/074a86d0-a590-405c-a37d-6849e17ab843)
-
