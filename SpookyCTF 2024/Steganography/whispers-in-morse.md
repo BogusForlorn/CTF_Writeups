@@ -15,3 +15,4 @@ With a password, this could allow us to use steghide.
 ![image](https://github.com/user-attachments/assets/86f45bfe-c75d-44cf-ad9c-2c7737501b6c)
 
 And the flag is there.
+
