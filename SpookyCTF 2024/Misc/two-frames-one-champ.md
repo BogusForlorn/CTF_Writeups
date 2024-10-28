@@ -8,3 +8,4 @@ From the challenge description, we get the hint that we need to 'JOIN' 'TOGETHER
 ![image](https://github.com/user-attachments/assets/4d3225e4-fc3d-4bd9-8055-70c681796dd5)
 
 And that's our flag.
+
