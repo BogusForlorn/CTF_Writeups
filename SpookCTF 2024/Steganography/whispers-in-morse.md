@@ -1,6 +1,6 @@
 Name: whispers-in-morse
 
-Description: Mary got a letter from Maya talking about seeing a cryptid sighting but doesn't want other people to know, the only thing attached is this picture? She wonders if there could be a secret message hidden inside.![image](https://github.com/user-attachments/assets/d5ed5cbd-cbed-4394-816e-3224beef8e0d)
+Description: Mary got a letter from Maya talking about seeing a cryptid sighting but doesn't want other people to know, the only thing attached is this picture? She wonders if there could be a secret message hidden inside.
 
 The challenge has given us a JPEG image. First order of business is to collect more information about the file.
 In steganography and forensics, we would do this using the 'file' and 'exiftool' commands.
