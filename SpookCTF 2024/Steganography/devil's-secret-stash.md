@@ -1,6 +1,6 @@
 Name: devil's-secret-stash
 
-Description: In the depths of the Pine Barrens, a cryptic legend whispers of the Jersey Devil guarding a picture. Tales speak of forgotten knowledge sealed within, but only those sharp enough to see the truth can unlock its secrets. The key? The key hiding in plain sight, woven into the eerie folklore itself, waiting for the chosen few to discover and reveal the dark treasures within.![image](https://github.com/user-attachments/assets/d8c93035-0d1a-4494-870c-5aec64d67ca8)
+Description: In the depths of the Pine Barrens, a cryptic legend whispers of the Jersey Devil guarding a picture. Tales speak of forgotten knowledge sealed within, but only those sharp enough to see the truth can unlock its secrets. The key? The key hiding in plain sight, woven into the eerie folklore itself, waiting for the chosen few to discover and reveal the dark treasures within.!
 
 Like usual, some reconnaissance first.
 
