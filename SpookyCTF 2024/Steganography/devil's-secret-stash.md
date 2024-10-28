@@ -18,3 +18,5 @@ No issue here, we'll just bruteforce it.
 After getting the password '250250' and extracting the contents of the zip file, we can get the flag.
 
 ![image](https://github.com/user-attachments/assets/483e5eda-d074-4b7e-8b54-83694b6e54e3)
+
+
