@@ -6,3 +6,4 @@ The challenge gives us an audio file named 'evidence.wav'.
 Playing this audio file doesn't really give us much, so let's analyze it in Audacity.
 
 ![image](https://github.com/user-attachments/assets/75cc33da-cdbf-4768-a397-0f5499ec1617)
+By changing the mode from waveform to spectrogram, we can see the flag has been imprinted.
