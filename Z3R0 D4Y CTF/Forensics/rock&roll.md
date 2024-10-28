@@ -43,8 +43,8 @@ def extract_nested_zip(zip_file_path, extract_to_dir):
                 flag_content = flag_file.read()
                 print(f"Flag found: {flag_content}")
 
-zip_file_path = '/home/kali/CTF/ZeroDay/_rockroll.jpg.extracted/htq.zip'
-extract_to_dir = '/home/kali/CTF/ZeroDay/_rockroll.jpg.extracted/extracted_files_dir'
+zip_file_path = 'htq.zip'
+extract_to_dir = 'extracted_files_dir'
 extract_nested_zip(zip_file_path, extract_to_dir)
 ```
 
