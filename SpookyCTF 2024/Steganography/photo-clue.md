@@ -24,7 +24,7 @@ This is the extracted ```REDACTED.jpg```.
 
 ![image](https://github.com/user-attachments/assets/ec7492f3-fa2a-420c-8934-67abb57d0451)
 
-The rest is just normal forensics and steganography CTF stuff. I ran file and exiftool but found nothing interesting, so I assumed that steganography was at play. I initially used Aperi'solve to solve it but steghide with no passphrase works just as well.
+The rest is just normal forensics and steganography CTF stuff. I ran file and exiftool but found nothing interesting, so I assumed steganography was at play. I initially used Aperi'solve to solve it but steghide with no passphrase worked just as well.
 
 ![image](https://github.com/user-attachments/assets/dcc75cbb-6991-4afb-aea0-79e3f3cee93a)
 
