@@ -1,4 +1,5 @@
 Name: Ghost on the wire
+
 Description: [Lost to time]
 
 When coming to CTF challenges, the fastest way to solve packet capture files is to simply use strings and grep to get the flag. 
