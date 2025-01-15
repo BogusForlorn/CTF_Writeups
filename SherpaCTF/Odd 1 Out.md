@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/601a2251-7f99-402a-a829-415ba2bd7ac4)![image](https://github.com/user-attachments/assets/2b9165c0-6c40-46de-bcd8-8f832124cceb)![image](https://github.com/user-attachments/assets/bdc6b0c2-3f80-470e-980e-3062f144ca08)![image](https://github.com/user-attachments/assets/905242e1-d83b-4031-81c2-efd0d309228d)Name: Odd 1 Out
+Name: Odd 1 Out
 
 Description: There’s an imposter among the rest of the vroom vrooms, what is it trying to say?
 
@@ -27,7 +27,6 @@ I then used awk to get the unique logs
 
 Still nothing interesting here.
 
-![image](https://github.com/user-attachments/assets/7f500a4d-d404-462f-bce6-143a4117b614)
 
 Replay VCAN Interface
 
