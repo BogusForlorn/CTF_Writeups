@@ -13,7 +13,7 @@ This vcan log seems like its a bunch of hexdump of some sort. Vcan is simple a v
 
 Before I get to my solution, let's talk about what I've tried:
 
-Unique responses
+<ins>Unique responses</ins>
 
 ![image](https://github.com/user-attachments/assets/d05e8e48-68fb-48a6-9818-130aba9e0046)
 
@@ -28,7 +28,7 @@ I then used awk to get the unique logs
 Still nothing interesting here.
 
 
-Replay VCAN Interface
+<ins>Replay VCAN Interface</ins>
 
 I also attempted to mount vcan0 to my machine in hopes of replaying the data that was send out. I thought if I could replay the data the way the interface had received it, maybe I could get an idea of what was being transmitted.
 Here I just used these simple commands to setup:
