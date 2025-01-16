@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/86d0ffba-2b78-4c9f-afd2-2940afb63ab3)Challenge Description: Partial traffic packet captured from hacked machine, can you analyze the provided pcap file to extract the message from the packet perhaps by reading the packet data?
+Challenge Description: Partial traffic packet captured from hacked machine, can you analyze the provided pcap file to extract the message from the packet perhaps by reading the packet data?
 Author: Ap0k4L1p5
 
 In this challenge, we're given traffic.pcap. First things first when dealing with a pcap file is checking for the protocol hierarchy to get a better picture of what we have here.
