@@ -2,7 +2,7 @@ Deleted file in recycle bin
 Retrieve all the files and read the sus files 1 by 1
 
 Png and jpg not actually pictures but other files
- 
+```
 ┌──(kali㉿kali)-[~/…/sibersiaga/Forensics/Dumpster Diving/Dumpster_Diving]
 └─$ xxd I9BDBFN.png
 00000000: 0200 0000 0000 0000 abb1 0000 0000 0000  ................
@@ -35,5 +35,5 @@ Png and jpg not actually pictures but other files
 00000070: 5f00 3700 5200 3400 5300 6800 4500 4400  _.7.R.4.S.h.E.D.
 00000080: 5f00 3100 5400 3300 6d00 7300 7d00 2e00  _.1.T.3.m.s.}...
 00000090: 6a00 7000 6700 0000                      j.p.g...
- 
+ ```
 Flag in this fake jpg
