@@ -1,5 +1,8 @@
-Description
+Title: `Shortcut to Flag`
+Description:
+
 `One of our analysts noticed suspicious activity originating from a workstation after an employee clicked what appeared to be a password files. Upon investigation, we found this mysterious .LNK file in their Downloads folder.`
+
 
 # Solution
 First things first, we’re given an LNK file, which is a shortcut by reference for the Windows system. The thing about this challenge is we’re not given anything else like an AD1 file or a memdump, so we can’t actually see what the shortcut is point to. The only thing we can do is try to inspect the LNK file itself. So first I viewed the contents with cat.
