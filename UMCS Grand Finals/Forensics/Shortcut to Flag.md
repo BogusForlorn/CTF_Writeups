@@ -1,3 +1,5 @@
+# Challenge
+
 Title: 
 `Shortcut to Flag`
 
@@ -25,5 +27,7 @@ Saving the binary as an exe, I then inspected it using a text editor, but saw no
 <img width="975" height="523" alt="image" src="https://github.com/user-attachments/assets/e693b053-6a05-43f6-a061-dc8d40e9a358" />
 
 You can simply write a script that takes the functions above to get the flag:
+
+
 # Flag
 `UMCS{281e271947b31e6dad08629bbcb53462}`
