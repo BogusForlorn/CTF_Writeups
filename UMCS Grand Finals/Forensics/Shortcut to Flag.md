@@ -1,4 +1,6 @@
-Title: `Shortcut to Flag`
+Title: 
+`Shortcut to Flag`
+
 Description:
 
 `One of our analysts noticed suspicious activity originating from a workstation after an employee clicked what appeared to be a password files. Upon investigation, we found this mysterious .LNK file in their Downloads folder.`
