@@ -128,7 +128,7 @@ mindy
 sshd
 ```
 
-Then, using `impacket-GetNPUsers`, get the user hashes from the DC:
+Because we don't have any user passwords, we have to see if the user accounts are susceptible to any Kerberos vulnerabilities. Here I tried AS-REP Roasting using `impacket-GetNPUsers` to get the user hashes from the DC:
 
 ```
 $ impacket-GetNPUsers cynx.local/ -usersfile full_users.txt -format john -dc-ip 192.168.203.135 -no-pass
