@@ -1,6 +1,7 @@
 # B2R Hijack Solution
 
 Challenge: Hijack
+
 Difficulty: Medium
 
 # Recon
