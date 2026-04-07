@@ -151,7 +151,7 @@ SMBMap - Samba Share Enumerator v1.10.7 | Shawn Evans - ShawnDEvans@gmail.com
 [*] Closed 1 connections
 ```
 
-I was able to authenticate and connect to SMB via the Guest account with no password. 
+I was able to authenticate and connect to SMB via the Guest account with no password. With this, I could see some SMB shares which I had access to (READ ONLY permissions).
 
 
 I tried to see if I could get some local user accounts 
